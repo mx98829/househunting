@@ -1,0 +1,26 @@
+<p><a href="/"> Add a new housing </a></p>
+
+<ul>
+  <%  filter_session_input.select do |id, choice| %>
+    <li><%= choice.values.join(", ")%></li>
+    
+     <form action ="/<%=id %>/remove" method="post">
+      <button type="submit">remove</button>
+    </form>
+    
+    <form action ="/<%=id %>" method="get">
+      <button type="submit">edit</button>
+    </form>
+  <% end %>
+</ul>   
+    
+   
+  
+
+
+
+
+
+ 
+      
+ 
