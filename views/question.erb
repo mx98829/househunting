@@ -1,7 +1,7 @@
 <p><a href="/result">Back to the list</a></p>
 <p><n2>Please put in the house information below</n2></p>
 <ul>
-<% @property_list.keys.each do |question| %>
+<% PROPERTY_LIST.each do |question| %>
     <h2><li><%=question %></li></h2>
     <form action= "/" method= "post">
       <input name= "<%=question %>">

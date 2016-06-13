@@ -1,6 +1,8 @@
 require 'sinatra'
 require 'sinatra/reloader'
 require 'tilt/erubis'
+require 'yaml'
+require 'pry'
 
 configure do
   enable :sessions
@@ -8,7 +10,7 @@ configure do
 end
 
 before do
-  @property_list = YAML.load_file('property.yaml')
+  PROPERTY_LIST = ['price', 'address', 'size', 'neighborhood', 'walkscore', 'notes', 'phonenumber']
   session[:input] ||= {}
   session[:id] ||= 1
 end
@@ -17,32 +19,35 @@ helpers do
   def filter_session_input
     session[:input].select { |_, value| value.values.all? { |char| !char.strip.empty? } }
   end
+
+  def load_and_check_input(id)
+    PROPERTY_LIST.each do |p|
+    session[:input][id][p] = params[p.to_sym]
+      end
+
+    PROPERTY_LIST.each do |p|
+      if params[p.to_sym].strip.empty?
+        session[:message] = 'Please fill in all the information'
+        redirect "/#{id}"
+      end
+    end
+  end
 end
 
 get '/' do
-  erb :question, layout: :layout
+  erb :question
 end
 
 post '/' do
   session[:input][session[:id]] = {}
-  @property_list.keys.each do |p|
-    session[:input][session[:id]][p] = params[p.to_sym]
-  end
-
-  @property_list.keys.each do |p|
-    if params[p.to_sym].strip.empty?
-      session[:message] = 'Please fill in all the information'
-      redirect "/#{session[:id]}"
-    end
-  end
-
+  load_and_check_input(session[:id])
   session[:id] += 1
   session[:message] = 'The house has been added'
   redirect '/result'
 end
 
 get '/result' do
-    erb :result, layout: :layout
+    erb :result
 end
 
 post '/:id/remove' do
@@ -57,7 +62,7 @@ get '/:id' do
   @id = params[:id].to_i
   @keys = session[:input].keys
   if session[:input][@id]
-    erb :edit, layout: :layout
+    erb :edit
   else
     session[:message] = 'This house is not found'
     redirect '/result'
@@ -67,17 +72,7 @@ end
 post '/:id' do
   @id = params[:id].to_i
   @keys = session[:input].keys
-
-  @property_list.keys.each do |p|
-    session[:input][@id][p] = params[p.to_sym]
-  end
-
-  @property_list.keys.each do |p|
-    if params[p.to_sym].strip.empty?
-      session[:message] = 'Please fill in all the information'
-      redirect "/#{@id}"
-    end
-  end
+  load_and_check_input(@id)
   session[:message] = 'The house has been saved'
   redirect '/result'
 end
